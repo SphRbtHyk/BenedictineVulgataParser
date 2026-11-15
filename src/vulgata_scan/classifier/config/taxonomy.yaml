@@ -1,0 +1,81 @@
+# Sigla taxonomy, data-driven. Adding a new symbol = add a reference crop + edit this
+# file; no code changes.
+#
+# Training pixels come EXCLUSIVELY from real reference crops (high-zoom screenshots
+# taken directly from the scanned edition's Elenchus / Declaratio Signorum pages --
+# same typeface, ink and paper as the apparatus text to correct). No font rendering.
+#
+# reference_dirs are TRAINING-TIME inputs only; inference never reads them.
+# Relative paths are resolved against the repository root (see load_taxonomy).
+reference_dirs:
+  elenchus: data/reference_crops/elenchus codicum et editionum
+  fraktur: data/reference_crops/elenchus codicum et editionum/fraktur
+  declaratio: data/reference_crops/declaratio signorum
+  latin: data/reference_crops/lettre_latin
+
+# Bases and their known candidate superscript alphabets (Unicode Modifier Letters,
+# e.g. A -> U+1D2C). plain_latin: true marks bases whose bare glyph is an ordinary
+# Latin capital, pixel-identical to running text: those are trained ONLY in
+# modifier-attached forms (G^c, P2, A1, ...); their bare forms belong to background
+# (OCR already reads them correctly, so keeping OCR output for them is the right
+# reconstruction).
+bases:
+  Θ: {superscripts: [A, H, M, G]}
+  Φ: {superscripts: [A, G, P, R, V, Z]}
+  Ψ: {superscripts: [B, D, M, F]}   # F is U+A7F3 'ꟳ' (LATIN LETTER SMALL CAPITAL F)
+  Ω: {superscripts: [S, J, M]}
+  Λ: {superscripts: [H, L]}
+  Σ: {superscripts: [M, O, T]}
+  Π: {superscripts: [C, D]}
+  G: {superscripts: [C], plain_latin: true}
+  C: {superscripts: [], plain_latin: true}
+  O: {superscripts: [], plain_latin: true}
+  P: {superscripts: [], plain_latin: true}
+  X: {superscripts: [], plain_latin: true}
+  A: {superscripts: [], plain_latin: true}
+  M: {superscripts: [], plain_latin: true}
+  T: {superscripts: [], plain_latin: true}
+  B: {superscripts: [], plain_latin: true}
+
+# Trailing numeral modifiers: an independent slot, orthogonal to the superscript
+# letter alphabet, attachable after any base(+superscripts).
+# Confirmed real occurrences include P2 and M2. Official meanings (declaratio signorum):
+#   1 -> original scribe's reading, later corrected by a second hand
+#   2 -> reading introduced by the original scribe's own correction
+#   3 -> reading introduced by a second hand
+trailing_numerals: ["1", "2", "3"]
+
+# Fraktur alphabet in master-sequence order: printed clusters are subsets of this
+# sequence in this order. The letterform sometimes mistaken for 'b' or 'd' is
+# fraktur v; 'w' is placed before s/c per a real printed cluster (𝔴𝔰𝔠).
+fraktur_letters: [a, g, r, e, l, v, w, s, c]
+
+# Declaratio signorum: standalone closed-set symbols, no composition.
+# A "***" run is not a class: each * is segmented and classified individually,
+# so printed runs survive verbatim; counting them is the grammar parser's job.
+# ⟨ / § / om. / italic abbreviations are deliberately not classes:
+# GLM-OCR reads them correctly, and what the VLM already gets right stays background.
+declaratio_signorum:
+  "]": "reading printed in text to which a note refers, or to which a variant reading of another form/branch is related"
+  "†": "reading written by the original scribe before being altered/corrected"
+  "~": "precedes words transposed from their original order"
+  "+": "precedes words that have been added"
+  "¶": "precedes notes derived from the Correctoria or manuscript margins"
+  "*": "single asterisk; runs of * (erased/illegible letter count) are assembled downstream"
+  "|": "unit boundary: separates apparatus entries for different loci (a class of its own, unlike other punctuation, because GLM often drops it)"
+
+# Special Latin abbreviation letterforms printed in the apparatus and misread by
+# GLM-OCR, because ā's macron looks like a superscript and ł looks like †.
+# Closed set with one class per letterform. Reference crops live in
+# reference_dirs.latin, and a multi-letter crop contributes its LAST letter.
+latin_letters: [ā, ł, ę, s̄]
+
+# Real pixel sizes measured on the native-resolution page render (pdftoppm -r 330 on
+# genesis_p1-3.pdf; the embedded scans are ~330 DPI). Downsampling targets for
+# synthesis. The +-2px jitter range around base_char_height is applied at generation
+# time.
+native_dpi: 330
+measured_scale_px_native:
+  full_line_height: 36
+  base_char_height: 22
+  superscript_char_height: 12

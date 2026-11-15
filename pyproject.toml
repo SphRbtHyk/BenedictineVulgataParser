@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vulgata-scan"
+version = "1.0.0"
+description = "Parse the critical apparatus of the Benedictine Vulgate of Genesis: VLM transcription, glyph classification, reconciliation and formal-grammar parsing."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "The Benedictine Vulgate apparatus parsing team" }]
+keywords = [
+    "critical apparatus",
+    "vulgate",
+    "textual criticism",
+    "OCR",
+    "vision-language model",
+    "formal grammar",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Text Processing :: Linguistic",
+]
+# Versions pinned to the environment the paper's experiments were run in.
+dependencies = [
+    "pyparsing==3.3.2",
+    "Pillow==12.3.0",
+    "numpy==2.5.1",
+    "scipy==1.18.0",
+    "PyYAML==6.0.3",
+    "requests==2.34.2",
+    "pymupdf==2.1",
+    "torch==2.15.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+vulgata-scan = "vulgata_scan.cli.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+# the classifier's frozen inputs ship with the package (preprocessing contract)
+vulgata_scan = [
+    "classifier/config/taxonomy.yaml",
+    "classifier/checkpoints/best.pt",
+]

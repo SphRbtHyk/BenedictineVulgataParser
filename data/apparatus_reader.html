@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Apparatus reader — Vulgata Genesis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────────────────────
+   Tokens. The colour triad encodes Quentin's three witness
+   states; it is never used for decoration.
+   ───────────────────────────────────────────────────────────── */
+:root{
+  --paper:#f0f0ea; --card:#fbfbf7; --sunk:#e7e7df;
+  --ink:#15181d; --ink-2:#4c525b; --ink-3:#8b919b;
+  --rule:#dcdcd2; --rule-2:#c9c9bd;
+
+  --attest:#2b6a51;  --attest-bg:#e2ede7;
+  --lacuna:#a3701a;  --lacuna-bg:#f2e8d6;
+  --silent:#8b95a3;  --silent-bg:#e8eaee;
+  --adopted:#33417a; --adopted-bg:#e3e6f2;
+  --alarm:#9c3324;   --alarm-bg:#f4e2de;
+
+  --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --serif:"EB Garamond",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  --rail:246px; --gut:20px;
+}
+[data-theme="dark"]{
+  --paper:#0f1216; --card:#161a20; --sunk:#1c212a;
+  --ink:#e8e8e1; --ink-2:#a8afba; --ink-3:#6f7783;
+  --rule:#252b34; --rule-2:#333b47;
+  --attest:#6cb694; --attest-bg:#1a2b25;
+  --lacuna:#d8a44c; --lacuna-bg:#2d2417;
+  --silent:#6f7883; --silent-bg:#1e232b;
+  --adopted:#93a2e6; --adopted-bg:#1c2135;
+  --alarm:#e0796a; --alarm-bg:#301c19;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--sans); font-size:14px; line-height:1.5;
+  font-feature-settings:"tnum" 1;
+}
+button,input,select{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+a{color:inherit}
+::selection{background:#d9d3bf}
+:focus-visible{outline:2px solid var(--adopted);outline-offset:2px;border-radius:2px}
+
+/* ── top bar ─────────────────────────────────────────────── */
+.topbar{
+  position:sticky;top:0;z-index:40;
+  display:flex;align-items:center;gap:16px;
+  padding:10px var(--gut); background:var(--paper);
+  border-bottom:1px solid var(--rule);
+}
+.brand{display:flex;align-items:baseline;gap:10px;flex:0 0 auto}
+.brand h1{
+  font-family:var(--serif); font-size:20px; font-weight:600;
+  letter-spacing:.01em; white-space:nowrap;
+}
+.brand .sub{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-3); white-space:nowrap;
+}
+.search{position:relative;flex:1 1 auto;max-width:520px}
+.search input{
+  width:100%; padding:7px 30px 7px 30px;
+  background:var(--card); border:1px solid var(--rule-2); border-radius:2px;
+}
+.search input::placeholder{color:var(--ink-3)}
+.search .mag,.search .kbd{
+  position:absolute;top:50%;transform:translateY(-50%);
+  color:var(--ink-3);font-family:var(--mono);font-size:11px;pointer-events:none
+}
+.search .mag{left:10px}
+.search .kbd{right:9px;border:1px solid var(--rule-2);border-radius:2px;padding:0 4px}
+.tools{display:flex;gap:2px;margin-left:auto;flex:0 0 auto}
+.tbtn{
+  padding:6px 10px;border-radius:2px;color:var(--ink-2);
+  font-size:12.5px;white-space:nowrap;border:1px solid transparent;
+}
+.tbtn:hover{background:var(--sunk);color:var(--ink)}
+.tbtn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+/* ── shell ───────────────────────────────────────────────── */
+.shell{display:grid;grid-template-columns:var(--rail) minmax(0,1fr);align-items:start}
+.rail{
+  position:sticky;top:var(--topbar,53px);height:calc(100vh - var(--topbar,53px));overflow-y:auto;
+  padding:18px 14px 60px var(--gut);
+  border-right:1px solid var(--rule);
+}
+main{padding:18px var(--gut) 120px;min-width:0}
+
+.rail section{margin-bottom:26px}
+.rail h2{
+  font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:9px;font-weight:500;
+}
+
+/* corpus figures */
+.figs{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.fig{background:var(--card);padding:7px 9px}
+.fig b{display:block;font-family:var(--serif);font-size:19px;font-weight:600;line-height:1.1}
+.fig span{font-size:10.5px;color:var(--ink-3)}
+
+/* chapter / verse index */
+.chap{margin-bottom:10px}
+.chap>button{
+  display:flex;align-items:baseline;gap:7px;width:100%;padding:2px 0;
+  font-family:var(--serif);font-size:15px;font-weight:600;
+}
+.chap>button .n{font-family:var(--mono);font-size:10px;color:var(--ink-3);font-weight:400;margin-left:auto}
+.verses{display:flex;flex-wrap:wrap;gap:2px;margin:5px 0 0}
+.vlink{
+  min-width:22px;padding:1px 3px;text-align:center;border-radius:2px;
+  font-family:var(--mono);font-size:10.5px;color:var(--ink-2);
+  background:var(--sunk);
+}
+.vlink:hover{background:var(--ink);color:var(--paper)}
+.vlink.gap{background:transparent;color:var(--alarm);border:1px dashed var(--alarm);opacity:.7}
+
+/* witness index */
+.wfind{width:100%;padding:5px 8px;margin-bottom:6px;background:var(--card);
+  border:1px solid var(--rule-2);border-radius:2px;font-size:12px}
+.wlist{max-height:250px;overflow-y:auto;border:1px solid var(--rule);background:var(--card)}
+.wrow{
+  display:flex;align-items:center;gap:8px;width:100%;padding:3px 8px;
+  border-bottom:1px solid var(--rule);
+}
+.wrow:last-child{border-bottom:0}
+.wrow:hover{background:var(--sunk)}
+.wrow.on{background:var(--ink);color:var(--paper)}
+.wrow .ct{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--ink-3)}
+.wrow.on .ct{color:var(--paper);opacity:.6}
+.wrow .lac{width:5px;height:5px;border-radius:50%;background:var(--lacuna);flex:0 0 auto}
+
+/* checks */
+.check{display:flex;gap:8px;width:100%;padding:4px 0;text-align:left;font-size:12px;color:var(--ink-2);border-bottom:1px dotted var(--rule)}
+.check:hover{color:var(--ink)}
+.check .ct{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--alarm)}
+.check.on{color:var(--ink);font-weight:500}
+
+/* ── filter bar ──────────────────────────────────────────── */
+.filters{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:4px}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;padding:3px 9px;
+  border:1px solid var(--rule-2);border-radius:99px;background:var(--card);
+  font-size:12px;color:var(--ink-2);
+}
+.chip:hover{border-color:var(--ink-3);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.chip .ct{font-family:var(--mono);font-size:10px;opacity:.6}
+.chip.alarm[aria-pressed="true"]{background:var(--alarm);border-color:var(--alarm)}
+.bar-note{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin:10px 0 16px;padding-top:9px;border-top:1px solid var(--rule);
+  font-size:12px;color:var(--ink-3);
+}
+.bar-note b{color:var(--ink);font-weight:500}
+.linkish{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px}
+.linkish:hover{color:var(--ink)}
+
+/* ── lens banner ─────────────────────────────────────────── */
+.lens{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:10px 12px;margin-bottom:14px;
+  background:var(--card);border:1px solid var(--rule-2);border-left:3px solid var(--ink);
+}
+.lens .who{font-family:var(--serif);font-size:18px}
+.lens .scope{display:flex;gap:0;border:1px solid var(--rule-2);border-radius:2px;overflow:hidden}
+.lens .scope button{padding:2px 9px;font-size:11.5px;color:var(--ink-2);border-right:1px solid var(--rule-2)}
+.lens .scope button:last-child{border-right:0}
+.lens .scope button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.tally{display:flex;gap:4px;font-size:12px}
+.tally button{display:flex;align-items:center;gap:5px;color:var(--ink-2);padding:2px 8px;border-radius:99px;border:1px solid transparent}
+.tally button:hover{background:var(--sunk);color:var(--ink)}
+.tally button[aria-pressed="true"]{border-color:var(--rule-2);background:var(--sunk);color:var(--ink)}
+.tally i{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto}
+.tally b{font-family:var(--mono);font-weight:500;color:var(--ink)}
+
+/* ── verse groups & readings ─────────────────────────────── */
+.desunt{
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  margin:22px 0 12px;padding:6px 10px;
+  background:var(--lacuna-bg);border-left:3px solid var(--lacuna);
+}
+.desunt .lbl{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--lacuna);font-weight:600;
+}
+.desunt .set{font-family:var(--serif);font-size:15px;color:var(--ink)}
+.desunt .set s{text-decoration:none;margin-right:9px}
+.desunt em{font-style:normal;font-size:11px;color:var(--ink-3);margin-left:auto}
+
+.verse{margin-bottom:2px}
+.vhead{
+  display:flex;align-items:baseline;gap:9px;
+  padding:12px 0 4px;
+}
+.vhead .ref{
+  font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.02em;
+  color:var(--ink);
+}
+.vhead .rule{flex:1;height:1px;background:var(--rule)}
+.vhead .cnt{font-family:var(--mono);font-size:10px;color:var(--ink-3)}
+
+.rd{
+  display:grid;grid-template-columns:14px minmax(0,1fr);gap:0 10px;
+  padding:7px 10px 7px 0;border-bottom:1px solid var(--rule);
+  position:relative;
+}
+.rd:hover{background:var(--card)}
+.rd.sel{background:var(--card);box-shadow:inset 3px 0 0 var(--ink)}
+.rd .mark{
+  grid-row:1/3;padding-top:4px;font-size:11px;line-height:1;
+  color:var(--ink-3);text-align:center;
+}
+.rd .mark.attest{color:var(--attest)}
+.rd .mark.lacuna{color:var(--lacuna)}
+.rd .mark.silent{color:var(--silent);opacity:.55}
+.rd .line{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 9px}
+.rd .meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:3px}
+
+.type{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-3);border:1px solid var(--rule-2);border-radius:2px;padding:0 4px;
+  white-space:nowrap;
+}
+.type.adopted{color:var(--adopted);border-color:var(--adopted);background:var(--adopted-bg)}
+.type.note{color:var(--ink-2);border-style:dashed}
+
+.lemma{font-family:var(--serif);font-size:17px;color:var(--ink-2)}
+.lemma:after{content:" ]";color:var(--ink-3);font-weight:600}
+.rdg{font-family:var(--serif);font-size:17px;font-weight:500}
+.rdg.om{color:var(--ink-2);text-decoration:line-through;text-decoration-color:var(--rule-2)}
+.anchor{font-family:var(--serif);font-size:17px;color:var(--ink-2)}
+.anchor:after{content:" +";color:var(--attest);font-weight:600;font-family:var(--sans)}
+.notetext{font-family:var(--serif);font-size:16px;font-style:italic;color:var(--ink-2)}
+
+.wits{font-family:var(--serif);font-size:15px;color:var(--ink);line-height:1.55}
+.wits button{font-family:inherit;font-size:inherit;padding:0 1px;border-radius:2px}
+.wits button:hover{background:var(--sunk)}
+.wits button.hit{background:var(--attest-bg);box-shadow:inset 0 -2px 0 var(--attest)}
+
+.tag{font-size:11px;color:var(--ink-3);white-space:nowrap}
+.tag b{font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.tag.ann{font-style:italic;font-family:var(--serif);font-size:13.5px;color:var(--ink-2)}
+.flagbtn{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--alarm);background:var(--alarm-bg);border-radius:2px;padding:0 5px;
+}
+
+/* three-state bar */
+.tri{display:flex;height:3px;width:150px;background:var(--sunk);border-radius:2px;overflow:hidden;flex:0 0 auto}
+.tri i{display:block;height:100%}
+.tri .a{background:var(--attest)}
+.tri .l{background:var(--lacuna)}
+.tri .s{background:var(--silent);opacity:.35}
+
+/* ── lacuna map ──────────────────────────────────────────── */
+.map{margin:0 0 22px;padding:14px;background:var(--card);border:1px solid var(--rule-2)}
+.map h3{font-family:var(--serif);font-size:17px;font-weight:600;margin-bottom:2px}
+.map p{font-size:12px;color:var(--ink-3);margin-bottom:12px;max-width:64ch}
+.mapscroll{overflow-x:auto;padding-bottom:6px}
+.mgrid{display:grid;gap:1px;font-family:var(--mono);font-size:10px}
+.mlabel{padding-right:9px;text-align:right;white-space:nowrap;font-family:var(--serif);font-size:14px}
+.mcell{width:7px;height:13px;background:var(--silent-bg)}
+.mcell.a{background:var(--attest);opacity:.85}
+.mcell.l{background:var(--lacuna)}
+.mcell.n{background:transparent}
+.mchap{font-size:9px;color:var(--ink-3);letter-spacing:.08em}
+.legend{display:flex;gap:16px;margin-top:12px;font-size:11.5px;color:var(--ink-2);flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;display:inline-block}
+
+/* ── inspector ───────────────────────────────────────────── */
+.inspector{
+  position:fixed;top:0;right:0;width:min(430px,92vw);height:100vh;z-index:60;
+  background:var(--card);border-left:1px solid var(--rule-2);
+  transform:translateX(101%);transition:transform .18s ease;
+  display:flex;flex-direction:column;
+}
+.inspector.open{transform:none}
+.inspector header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--rule)}
+.inspector header .ref{font-family:var(--mono);font-size:12px;font-weight:600}
+.inspector .body{overflow-y:auto;padding:16px;flex:1}
+.ifield{margin-bottom:14px}
+.ifield h4{font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px;font-weight:500}
+.ifield .val{font-family:var(--serif);font-size:16px}
+.ifield ul{list-style:none;font-size:13px;color:var(--ink-2)}
+.ifield li{padding:1px 0}
+.ifield pre{
+  font-family:var(--mono);font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-word;
+  background:var(--sunk);padding:10px;border-radius:2px;color:var(--ink-2);max-height:280px;overflow:auto;
+}
+.statecols{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.statecol h5{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;font-weight:600}
+.statecol.a h5{color:var(--attest)} .statecol.l h5{color:var(--lacuna)} .statecol.s h5{color:var(--silent)}
+.statecol div{font-family:var(--serif);font-size:14px;line-height:1.6;max-height:190px;overflow:auto}
+
+/* ── loader / empty ──────────────────────────────────────── */
+.drop{
+  max-width:660px;margin:9vh auto;padding:34px;
+  background:var(--card);border:1px solid var(--rule-2);
+}
+.drop.hot{border-color:var(--attest);background:var(--attest-bg)}
+.drop h2{font-family:var(--serif);font-size:26px;font-weight:600;margin-bottom:8px}
+.drop p{color:var(--ink-2);margin-bottom:14px;max-width:58ch}
+.drop code,.mono{font-family:var(--mono);font-size:12px;background:var(--sunk);padding:1px 5px;border-radius:2px}
+.drop .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:18px}
+.btn{
+  padding:7px 14px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);
+  border-radius:2px;font-size:13px;
+}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn:hover{opacity:.85}
+.err{color:var(--alarm);font-family:var(--mono);font-size:12px;margin-top:12px;white-space:pre-wrap}
+.hint{font-size:12px;color:var(--ink-3);margin-top:20px;border-top:1px solid var(--rule);padding-top:12px}
+
+/* sigla */
+sup{font-size:.62em;line-height:0;vertical-align:.52em;font-feature-settings:normal}
+sub{font-size:.62em;line-height:0;vertical-align:-.2em}
+.frak{font-family:"Noto Sans Math","Segoe UI Symbol",var(--serif);}
+.bad{color:var(--alarm);border-bottom:1px dotted var(--alarm)}
+
+.empty{padding:60px 0;text-align:center;color:var(--ink-3)}
+.empty b{display:block;font-family:var(--serif);font-size:20px;color:var(--ink-2);margin-bottom:6px}
+
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .rail{position:static;height:auto;border-right:0;border-bottom:1px solid var(--rule);padding-bottom:20px}
+  .brand .sub{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<script>
+  document.documentElement.setAttribute("data-theme",
+    matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+</script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <h1>Apparatus reader</h1>
+    <span class="sub" id="srcLabel">no file loaded</span>
+  </div>
+  <div class="search">
+    <span class="mag">⌕</span>
+    <input id="q" type="search" aria-label="Search the apparatus"
+      placeholder="Search readings, sigla, notes, citations…" autocomplete="off" spellcheck="false" />
+    <span class="kbd">/</span>
+  </div>
+  <div class="tools">
+    <button class="tbtn" id="btnMap" aria-pressed="false">Lacuna map</button>
+    <button class="tbtn" id="btnExport">Export view</button>
+    <button class="tbtn" id="btnOpen">Open file</button>
+    <button class="tbtn" id="btnTheme" title="Toggle dark mode">◐</button>
+  </div>
+</div>
+
+<div id="loader"></div>
+
+<div class="shell" id="shell" hidden>
+  <aside class="rail">
+    <section>
+      <h2>Corpus</h2>
+      <div class="figs" id="figs"></div>
+    </section>
+    <section>
+      <h2>Text</h2>
+      <div id="index"></div>
+    </section>
+    <section>
+      <h2>Witnesses</h2>
+      <input class="wfind" id="wfind" placeholder="filter sigla…" autocomplete="off" spellcheck="false" />
+      <div class="wlist" id="wlist"></div>
+    </section>
+    <section>
+      <h2>Checks</h2>
+      <div id="checks"></div>
+    </section>
+  </aside>
+
+  <main>
+    <div class="filters" id="typeChips"></div>
+    <div class="bar-note" id="barNote"></div>
+    <div id="lensBar"></div>
+    <div id="mapWrap" hidden></div>
+    <div id="list"></div>
+  </main>
+</div>
+
+<div class="inspector" id="inspector" aria-hidden="true">
+  <header>
+    <span class="ref" id="iRef"></span>
+    <button class="tbtn" id="iCopy" style="margin-left:auto">Copy JSON</button>
+    <button class="tbtn" id="iClose">Close</button>
+  </header>
+  <div class="body" id="iBody"></div>
+</div>
+
+<input type="file" id="file" accept=".json,application/json" hidden />
+
+<script>
+"use strict";
+
+/* ══════════════════════════════════════════════════════════
+   1. Siglum rendering — no MathJax.
+      The apparatus writes sigla as TeX: \Sigma^T, \Psi^{B*},
+      \Theta^{M^1}, \frak{g}, P^{2}. We render them directly to
+      HTML so that 20 000 of them cost nothing and remain
+      searchable as plain text.
+   ══════════════════════════════════════════════════════════ */
+const GREEK = {Alpha:"Α",Beta:"Β",Gamma:"Γ",Delta:"Δ",Epsilon:"Ε",Zeta:"Ζ",Eta:"Η",
+  Theta:"Θ",Iota:"Ι",Kappa:"Κ",Lambda:"Λ",Mu:"Μ",Nu:"Ν",Xi:"Ξ",Omicron:"Ο",Pi:"Π",
+  Rho:"Ρ",Sigma:"Σ",Tau:"Τ",Upsilon:"Υ",Phi:"Φ",Chi:"Χ",Psi:"Ψ",Omega:"Ω",
+  alpha:"α",beta:"β",gamma:"γ",delta:"δ",epsilon:"ε",theta:"θ",lambda:"λ",mu:"μ",
+  pi:"π",sigma:"σ",tau:"τ",phi:"φ",psi:"ψ",omega:"ω",dagger:"†",ast:"*"};
+
+const FRAK_UC = {C:"ℭ",H:"ℌ",I:"ℑ",R:"ℜ",Z:"ℨ"};
+function frakChar(ch){
+  if(ch>="a"&&ch<="z") return String.fromCodePoint(0x1D51E + ch.charCodeAt(0)-97);
+  if(FRAK_UC[ch]) return FRAK_UC[ch];
+  if(ch>="A"&&ch<="Z") return String.fromCodePoint(0x1D504 + ch.charCodeAt(0)-65);
+  return ch;
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* Reads a group after ^ or _ : either {…} (tolerating a missing
+   closing brace, which occurs in the data) or one character. */
+function readGroup(s,i){
+  if(s[i]==="{"){
+    let d=1,j=i+1;
+    while(j<s.length&&d>0){ if(s[j]==="{")d++; else if(s[j]==="}")d--; if(d>0)j++; }
+    return {body:s.slice(i+1,j), next: d===0 ? j+1 : j, unbalanced: d!==0};
+  }
+  return {body:s.slice(i,i+1), next:i+1, unbalanced:false};
+}
+
+/* mode: "html" → markup, "plain" → the glyphs only (for search) */
+function renderTeX(src, mode){
+  const s = String(src ?? "");
+  let out="", i=0, broken=false;
+  while(i<s.length){
+    const c=s[i];
+    if(c==="\\"){
+      const m=/^\\([A-Za-z]+)/.exec(s.slice(i));
+      if(!m){ out+= mode==="html"?esc(c):c; i++; continue; }
+      const name=m[1]; i+=m[0].length;
+      if(name==="frak"||name==="mathfrak"||name==="mathrm"||name==="text"){
+        while(s[i]===" ")i++;
+        const g=readGroup(s,i); i=g.next; if(g.unbalanced)broken=true;
+        const inner=g.body.trim();
+        if(name==="frak"||name==="mathfrak"){
+          const glyph=[...inner].map(frakChar).join("");
+          out += mode==="html" ? `<span class="frak" title="${esc(inner)}">${esc(glyph)}</span>` : glyph;
+        } else out += renderTeX(inner,mode);
+      } else if(GREEK[name]) out += GREEK[name];
+      else out += name;
+    } else if(c==="^"||c==="_"){
+      i++;
+      const g=readGroup(s,i); i=g.next; if(g.unbalanced)broken=true;
+      const tag = c==="^" ? "sup" : "sub";
+      out += mode==="html" ? `<${tag}>${renderTeX(g.body,mode)}</${tag}>` : g.body.replace(/[{}\\]/g,"");
+    } else if(c==="{"||c==="}"){ i++; }
+    else { out += mode==="html" ? esc(c) : c; i++; }
+  }
+  return mode==="html" && broken ? `<span class="bad" title="unbalanced braces in source">${out}</span>` : out;
+}
+const tex  = s => renderTeX(s,"html");
+const flat = s => renderTeX(s,"plain");
+
+/* Canonical form of a siglum: glyphs resolved, braces and spacing
+   dropped, but the ^ structure and hand marks kept, so that
+   \Sigma^{T} and \Sigma^T are one witness while G^{c} and G^{C}
+   stay two — the difference the case check needs to see. */
+function canon(raw){
+  return String(raw ?? "")
+    .replace(/\\(?:frak|mathfrak)\s*\{?\s*([A-Za-z])\s*\}?/g,(m,c)=>frakChar(c))
+    .replace(/\\([A-Za-z]+)/g,(m,n)=>GREEK[n]||n)
+    .replace(/[{}\s]/g,"");
+}
+const key  = s => canon(s);
+const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+/* root = siglum minus hand / corrector marks (Ψ^{B*} → Ψ^B, Θ^{M^1} → Θ^M) */
+function root(s){
+  return canon(s).replace(/[*†‡]/g,"").replace(/\^\d+$/,"").replace(/\d+$/,"").replace(/\^+$/,"");
+}
+/* family = the bare letter (Ψ^{F*} → Ψ) */
+const family = s => canon(s).split("^")[0].replace(/[*†‡0-9]/g,"");
+/* every way a person might type this siglum */
+const searchForms = s => [canon(s), String(s).replace(/[\\{}^_]/g," "),
+  String(s).replace(/[\\{}^_\s]/g,"")].join(" ").toLowerCase();
+
+/* ══════════════════════════════════════════════════════════
+   2. State
+   ══════════════════════════════════════════════════════════ */
+const S = {
+  raw:[], recs:[], verses:[], witnesses:[], witIndex:new Map(),
+  types:new Map(), checks:new Map(), gaps:[],
+  q:"", typeFilter:new Set(), checkFilter:null,
+  lens:null, lensScope:"hands", lensState:null, selected:null, mapOn:false, source:""
+};
+
+const TYPE_LABEL = {substitution:"subst.",addition:"add.",omission:"om.",
+  transposition:"transp.",adopted:"adopted",note:"note",in_text_support:"in text"};
+
+/* ══════════════════════════════════════════════════════════
+   3. Ingest + validation checks
+   ══════════════════════════════════════════════════════════ */
+const CHECKS = [
+  {id:"braces",  label:"Unbalanced braces",      test:r => r.allTeX.some(t => (t.match(/{/g)||[]).length !== (t.match(/}/g)||[]).length)},
+  {id:"dupwit",  label:"Repeated witness",       test:r => { const k=r.witnesses.map(key); return new Set(k).size!==k.length; }},
+  {id:"nowit",   label:"No witness",             test:r => r.type!=="note" && r.witnesses.length===0},
+  {id:"nordg",   label:"No reading text",        test:r => !["note","in_text_support"].includes(r.type) && !r.reading},
+  {id:"meta",    label:"Metalanguage as reading",test:r => /^(in ras\.|int\. lin\.|caract\.|rasura|bis rep|partim$|sup\. lin)/i.test(r.reading||"")},
+  {id:"artifact",label:"Transcription artefact", test:r => /\\|\b(bar|overline|mathrm|frak)\b/.test(r.reading||"")},
+  {id:"anchor",  label:"Addition without anchor",test:r => r.type==="addition" && !r.anchor}
+];
+
+function ingest(data){
+  if(!Array.isArray(data)) throw new Error("Expected a top-level JSON array of chapter/verse blocks.");
+  const recs=[], verses=[], order=[], seen=new Set();
+  data.forEach((blk,bi)=>{
+    const ch = String(blk.chapter ?? "?");
+    const vs = (blk.verse===null||blk.verse===undefined||blk.verse==="") ? null : String(blk.verse);
+    const vid = ch+":"+(vs ?? "tit");
+    const app = Array.isArray(blk.apparatus) ? blk.apparatus : [];
+    const v = {id:vid, chapter:ch, verse:vs, label: vs ? `${ch}:${vs}` : `${ch} tit.`, recs:[]};
+    verses.push(v);
+    app.forEach((a,ai)=>{
+      const alt = a.alternative_reading || {};
+      const r = {
+        id: vid+"#"+ai, vid, chapter:ch, verse:vs, order:recs.length, raw:a,
+        type: a.variant_type || "—",
+        anchor: a.anchor || "", inText: a.in_text || "", reading: alt.reading || "",
+        witnesses: Array.isArray(alt.witnesses) ? alt.witnesses : [],
+        missing: Array.isArray(a.missing) ? a.missing : [],
+        note: a.note || "", register: a.register || "",
+        annotations: a.annotations||[], citations: a.citations||[], versions: a.versions||[]
+      };
+      r.allTeX = [...r.witnesses, ...r.missing, r.reading, r.inText, r.anchor];
+      r.missKey = r.missing.map(key).join("|");
+      r.flags = CHECKS.filter(c => { try { return c.test(r); } catch(e){ return false; } }).map(c=>c.id);
+      r.search = norm([r.reading,r.inText,r.anchor,r.note,r.type,v.label,
+        r.annotations.join(" "),r.citations.join(" "),r.versions.join(" "),
+        r.witnesses.map(searchForms).join(" "),
+        r.missing.map(searchForms).join(" ")].join(" "));
+      [...r.witnesses,...r.missing].forEach(w=>{ const k=key(w); if(!seen.has(k)){seen.add(k); order.push(w);} });
+      recs.push(r); v.recs.push(r);
+    });
+  });
+
+  /* witness inventory, in order of first appearance ≈ Quentin's own order */
+  const wits = order.map(w=>({raw:w, key:key(w), root:root(w), fam:family(w), attests:0, lacunae:0}));
+  const byKey = new Map(wits.map(w=>[w.key,w]));
+  recs.forEach(r=>{
+    r.witnesses.forEach(w=>{ const e=byKey.get(key(w)); if(e) e.attests++; });
+    r.missing.forEach(w=>{ const e=byKey.get(key(w)); if(e) e.lacunae++; });
+  });
+
+  /* case-collision check needs the inventory, so it runs here */
+  const caseMap=new Map();
+  wits.forEach(w=>{ const u=w.key.toUpperCase(); if(!caseMap.has(u))caseMap.set(u,new Set()); caseMap.get(u).add(w.key); });
+  const collided=new Set();
+  caseMap.forEach(set=>{ if(set.size>1) set.forEach(v=>collided.add(v)); });
+  recs.forEach(r=>{
+    if([...r.witnesses,...r.missing].some(w=>collided.has(key(w)))) r.flags.push("case");
+  });
+
+  /* numeric gaps in the verse sequence — verses the parser never emitted */
+  const gaps=[]; const byChap=new Map();
+  verses.forEach(v=>{ if(v.verse==null) return; if(!byChap.has(v.chapter))byChap.set(v.chapter,[]); byChap.get(v.chapter).push(parseInt(v.verse,10)); });
+  byChap.forEach((nums,ch)=>{ const set=new Set(nums); for(let n=1;n<Math.max(...nums);n++) if(!set.has(n)) gaps.push(ch+":"+n); });
+
+  S.raw=data; S.recs=recs; S.verses=verses; S.witnesses=wits; S.witIndex=byKey; S.gaps=gaps;
+  S.types=new Map(); recs.forEach(r=>S.types.set(r.type,(S.types.get(r.type)||0)+1));
+  S.checks=new Map(); recs.forEach(r=>r.flags.forEach(f=>S.checks.set(f,(S.checks.get(f)||0)+1)));
+}
+const CHECK_LABEL = Object.fromEntries([...CHECKS.map(c=>[c.id,c.label]),["case","Case-variant siglum"]]);
+
+/* ══════════════════════════════════════════════════════════
+   4. Witness state — attests / lacuna / silent
+   ══════════════════════════════════════════════════════════ */
+function matcher(sel, scope){
+  if(!sel) return null;
+  if(scope==="exact") { const k=sel.key; return w=>key(w)===k; }
+  if(scope==="family"){ const f=sel.fam; return w=>family(w)===f; }
+  const rt=sel.root; return w=>root(w)===rt || key(w)===sel.key;
+}
+function stateOf(rec, match){
+  if(!match) return null;
+  if(rec.witnesses.some(match)) return "attest";
+  if(rec.missing.some(match))   return "lacuna";
+  return "silent";
+}
+
+/* ══════════════════════════════════════════════════════════
+   5. Filtering
+   ══════════════════════════════════════════════════════════ */
+function filtered(){
+  const q = norm(S.q.trim());
+  const qk = q.replace(/[\s{}\\^_]/g,"");
+  const match = matcher(S.lens, S.lensScope);
+  return S.recs.filter(r=>{
+    if(S.typeFilter.size && !S.typeFilter.has(r.type)) return false;
+    if(S.checkFilter==="__any" ? !r.flags.length
+      : S.checkFilter && !r.flags.includes(S.checkFilter)) return false;
+    if(S.lens){
+      const st = stateOf(r, match);
+      if(S.lensState && st!==S.lensState) return false;
+      if(!S.lensState && st==="silent") return false;
+    }
+    if(q && !(r.search.includes(q) || (qk && r.search.includes(qk)))) return false;
+    return true;
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   6. Rendering
+   ══════════════════════════════════════════════════════════ */
+const el = id => document.getElementById(id);
+
+function drawFigures(){
+  const notes = S.recs.filter(r=>r.type==="note").length;
+  const flagged = S.recs.filter(r=>r.flags.length).length;
+  el("figs").innerHTML = [
+    [S.recs.length,"readings"],[S.verses.length,"verses"],
+    [S.witnesses.length,"sigla"],[notes,"marginal notes"],
+    [S.witnesses.filter(w=>w.lacunae).length,"with lacunae"]/*,[flagged,"flagged"]*/
+  ].map(([n,l])=>`<div class="fig"><b>${n}</b><span>${l}</span></div>`).join("");
+}
+
+function drawIndex(){
+  const byChap=new Map();
+  S.verses.forEach(v=>{ if(!byChap.has(v.chapter))byChap.set(v.chapter,[]); byChap.get(v.chapter).push(v); });
+  const gapSet=new Set(S.gaps);
+  let h="";
+  byChap.forEach((vs,ch)=>{
+    const total=vs.reduce((n,v)=>n+v.recs.length,0);
+    const nums=vs.filter(v=>v.verse!=null).map(v=>parseInt(v.verse,10));
+    const max=nums.length?Math.max(...nums):0;
+    let links="";
+    vs.filter(v=>v.verse==null).forEach(v=>{ links+=`<button class="vlink" data-goto="${v.id}" title="title line">tit</button>`; });
+    const have=new Map(vs.filter(v=>v.verse!=null).map(v=>[parseInt(v.verse,10),v]));
+    for(let n=1;n<=max;n++){
+      const v=have.get(n);
+      links += v
+        ? `<button class="vlink" data-goto="${v.id}" title="${v.recs.length} readings">${n}</button>`
+        : `<span class="vlink gap" title="${ch}:${n} — no entry in this file">${n}</span>`;
+    }
+    h+=`<div class="chap"><button data-goto="${vs[0].id}">Chapter ${ch}<span class="n">${total}</span></button><div class="verses">${links}</div></div>`;
+  });
+  el("index").innerHTML=h;
+}
+
+function drawWitnessList(){
+  const f = norm(el("wfind").value.trim()).replace(/[\s{}\\^_]/g,"");
+  const rows = S.witnesses.filter(w => !f || w.key.includes(f) || norm(w.raw).includes(f));
+  el("wlist").innerHTML = rows.map(w=>`
+    <button class="wrow ${S.lens&&S.lens.key===w.key?"on":""}" data-wit="${esc(w.key)}">
+      ${w.lacunae?'<i class="lac" title="declared missing somewhere"></i>':'<i style="width:5px;flex:0 0 auto"></i>'}
+      <span style="font-family:var(--serif);font-size:15px">${tex(w.raw)}</span>
+      <span class="ct">${w.attests}</span>
+    </button>`).join("") || `<div style="padding:8px;color:var(--ink-3);font-size:12px">No siglum matches.</div>`;
+}
+
+function drawChecks(){
+  const ids=[...CHECKS.map(c=>c.id),"case"].filter(id=>S.checks.get(id));
+  let h = ids.map(id=>`
+    // <button class="check ${S.checkFilter===id?"on":""}" data-check="${id}">
+    //   <span>${CHECK_LABEL[id]}</span><span class="ct">${S.checks.get(id)}</span>
+    // </button>`).join("");
+  if(S.gaps.length) h += `<div class="check" style="cursor:default"><span>Verses absent from file</span><span class="ct">${S.gaps.length}</span></div>
+    <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink-3);padding-top:4px">${
+      S.gaps.slice(0,40).join("  ")}${S.gaps.length>40?" …":""}</div>`;
+  if(!h) h = `<div style="font-size:12px;color:var(--ink-3)">No structural problems detected.</div>`;
+  el("checks").innerHTML=h;
+}
+
+function drawTypeChips(){
+  const order=["adopted","substitution","addition","omission","transposition","in_text_support","note"];
+  const rank=t=>{ const i=order.indexOf(t); return i<0?order.length:i; };
+  const types=[...S.types.keys()].sort((a,b)=>rank(a)-rank(b)||a.localeCompare(b));
+  el("typeChips").innerHTML = types.map(t=>`
+    <button class="chip" data-type="${esc(t)}" aria-pressed="${S.typeFilter.has(t)}" title="${esc(t)}">
+      ${TYPE_LABEL[t]||t}<span class="ct">${S.types.get(t)}</span>
+    </button>`).join("")
+    + (S.checks.size?`<button class="chip alarm" data-check-any="1" aria-pressed="${S.checkFilter==="__any"}">flagged<span class="ct">${S.recs.filter(r=>r.flags.length).length}</span></button>`:"");
+}
+
+function drawLensBar(){
+  const box=el("lensBar");
+  if(!S.lens){ box.innerHTML=""; return; }
+  const match=matcher(S.lens,S.lensScope);
+  let a=0,l=0,s=0;
+  S.recs.forEach(r=>{ const st=stateOf(r,match); if(st==="attest")a++; else if(st==="lacuna")l++; else s++; });
+  const scopes=[["exact","exact"],["hands","+ hands"],["family","+ family"]];
+  const states=[["attest","attests",a,"var(--attest)"],["lacuna","lacuna",l,"var(--lacuna)"],["silent","silent",s,"var(--silent)"]];
+  box.innerHTML=`<div class="lens">
+    <span class="who">${tex(S.lens.raw)}</span>
+    <div class="scope">${scopes.map(([k,lab])=>`<button data-scope="${k}" aria-pressed="${S.lensScope===k}">${lab}</button>`).join("")}</div>
+    <div class="tally">${states.map(([k,lab,n,c])=>
+      `<button data-lensstate="${S.lensState===k?"":k}" aria-pressed="${S.lensState===k}"
+         style="${S.lensState===k?"font-weight:600":""}"><i style="background:${c};${k==="silent"?"opacity:.5":""}"></i>${lab} <b>${n}</b></button>`).join("")}</div>
+    <span style="font-size:11.5px;color:var(--ink-3)">${S.lensState?"one state only":"silence hidden"}</span>
+    <button class="tbtn" data-lens="" style="margin-left:auto">Clear witness</button>
+  </div>`;
+}
+
+function readingLine(r, match){
+  const st = stateOf(r, match);
+  const glyph = st==="attest" ? "●" : st==="lacuna" ? "◍" : st==="silent" ? "○" : "";
+  const tot = S.witnesses.length || 1;
+  const nA=r.witnesses.length, nL=r.missing.length, nS=Math.max(0,tot-nA-nL);
+  const bits=[];
+  if(r.inText)  bits.push(`<span class="lemma">${tex(r.inText)}</span>`);
+  if(r.anchor)  bits.push(`<span class="anchor">${tex(r.anchor)}</span>`);
+  bits.push(`<span class="type ${r.type==="adopted"?"adopted":r.type==="note"?"note":""}" title="${esc(r.type)}">${TYPE_LABEL[r.type]||r.type}</span>`);
+  if(r.reading) bits.push(`<span class="rdg ${r.type==="omission"?"om":""}">${tex(r.reading)}</span>`);
+  if(r.note)    bits.push(`<span class="notetext">${esc(r.note)}</span>`);
+  if(r.witnesses.length) bits.push(`<span class="wits">${r.witnesses.map(w=>
+      `<button data-wit="${esc(key(w))}" class="${match&&match(w)?"hit":""}">${tex(w)}</button>`).join(" ")}</span>`);
+
+  const meta=[];
+  r.annotations.forEach(a=>meta.push(`<span class="tag ann">${tex(a)}</span>`));
+  if(r.versions.length)  meta.push(`<span class="tag"><b>vers</b> ${r.versions.join(", ")}</span>`);
+  if(r.citations.length) meta.push(`<span class="tag"><b>cit</b> ${esc(r.citations.join(" · "))}</span>`);
+  if(r.register)         meta.push(`<span class="tag"><b>reg</b> ${esc(r.register)}</span>`);
+//   if(r.flags.length){
+//     const names=r.flags.map(f=>CHECK_LABEL[f]||f);
+//     meta.push(`<span class="flagbtn" title="${esc(names.join(" · "))}">⚑ ${
+//       r.flags.length===1 ? esc(names[0]) : r.flags.length+" checks"}</span>`);
+//   }
+  meta.push(`<span class="tri" title="${nA} attest · ${nL} lacuna · ${nS} silent">
+      <i class="a" style="flex:${nA}"></i><i class="l" style="flex:${nL}"></i><i class="s" style="flex:${nS}"></i></span>`);
+
+  return `<div class="rd ${S.selected===r.id?"sel":""}" data-rec="${r.id}">
+    <span class="mark ${st||""}">${glyph}</span>
+    <div class="line">${bits.join("")}</div>
+    <div class="meta">${meta.join("")}</div>
+  </div>`;
+}
+
+function drawList(){
+  const rows=filtered();
+  const box=el("list");
+  el("barNote").innerHTML = `<b>${rows.length}</b> of ${S.recs.length} readings`
+    + (S.q?` matching “${esc(S.q)}”`:"")
+    + (S.typeFilter.size||S.checkFilter||S.lens ? ` <button class="linkish" data-reset="1">reset filters</button>`:"")
+    + `<span style="margin-left:auto"></span>`
+    + `<span>Click a siglum to follow one witness through the text.</span>`;
+
+  if(!rows.length){ box.innerHTML=`<div class="empty"><b>Nothing matches.</b>Loosen the search or reset the filters.</div>`; return; }
+
+  const match=matcher(S.lens,S.lensScope);
+  const vByID=new Map(S.verses.map(v=>[v.id,v]));
+  const shown=new Map(); rows.forEach(r=>shown.set(r.vid,(shown.get(r.vid)||0)+1));
+  let h="", lastMiss=null, lastVid=null;
+  for(const r of rows){
+    if(r.missKey!==lastMiss){
+      const prev=lastMiss;
+      h+=`<div class="desunt">
+        <span class="lbl">Desunt</span>
+        <span class="set">${r.missing.length ? r.missing.map(m=>`<s>${tex(m)}</s>`).join("") : "<em style='margin:0'>no witnesses declared missing</em>"}</span>
+        <em>${prev===null?"from "+ (r.verse?r.chapter+":"+r.verse:r.chapter+" tit.") : "changes at "+(r.verse?r.chapter+":"+r.verse:r.chapter+" tit.")}</em>
+      </div>`;
+      lastMiss=r.missKey;
+    }
+    if(r.vid!==lastVid){
+      const v=vByID.get(r.vid);
+      const n=shown.get(r.vid);
+      h+=`<div class="verse" id="v-${esc(r.vid)}"><div class="vhead"><span class="ref">${esc(v.label)}</span><span class="rule"></span><span class="cnt">${n}</span></div></div>`;
+      lastVid=r.vid;
+    }
+    h+=readingLine(r,match);
+  }
+  box.innerHTML=h;
+}
+
+/* ── lacuna map ─────────────────────────────────────────── */
+function drawMap(){
+  const wrap=el("mapWrap");
+  wrap.hidden=!S.mapOn;
+  if(!S.mapOn){ wrap.innerHTML=""; return; }
+  const roots=[...new Set(S.witnesses.filter(w=>w.lacunae).map(w=>w.root))];
+  if(!roots.length){ wrap.innerHTML=`<div class="map"><h3>Lacuna map</h3><p>No <span class="mono">Desunt</span> declarations in this file.</p></div>`; return; }
+
+  const cols=S.verses;
+  const head=cols.map((v,i)=>{
+    const first = i===0 || cols[i-1].chapter!==v.chapter;
+    return `<div class="mchap" style="grid-column:${i+2};grid-row:1;writing-mode:vertical-rl">${first?esc(v.chapter):""}</div>`;
+  }).join("");
+  const rows=roots.map((rt,ri)=>{
+    const cells=cols.map((v,ci)=>{
+      let cls="mcell";
+      const lac=v.recs.some(r=>r.missing.some(m=>root(m)===rt));
+      const att=v.recs.some(r=>r.witnesses.some(w=>root(w)===rt));
+      if(lac)cls+=" l"; else if(att)cls+=" a"; else if(!v.recs.length)cls+=" n";
+      return `<div class="${cls}" style="grid-column:${ci+2};grid-row:${ri+2}" title="${esc(v.label)} — ${lac?"declared missing":att?"attests":"silent"}"></div>`;
+    }).join("");
+    return `<div class="mlabel" style="grid-column:1;grid-row:${ri+2}">${tex(rt)}</div>`+cells;
+  }).join("");
+
+  wrap.innerHTML=`<div class="map">
+    <h3>Lacuna map</h3>
+    <p>Each column is a verse in file order, each row a witness that the apparatus declares missing somewhere.
+       Ochre means <span class="mono">Desunt</span> was in force; green means the witness is cited in that verse.
+       A green cell inside an ochre run is a contradiction worth checking.</p>
+    <div class="mapscroll"><div class="mgrid" style="grid-template-columns:auto repeat(${cols.length},7px)">${head}${rows}</div></div>
+    <div class="legend">
+      <span><i style="background:var(--lacuna)"></i>declared missing</span>
+      <span><i style="background:var(--attest);opacity:.85"></i>cited as attesting</span>
+      <span><i style="background:var(--silent-bg)"></i>silent</span>
+    </div>
+  </div>`;
+}
+
+/* ── inspector ──────────────────────────────────────────── */
+function drawInspector(){
+  const insp=el("inspector");
+  const r=S.recs.find(x=>x.id===S.selected);
+  if(!r){ insp.classList.remove("open"); insp.setAttribute("aria-hidden","true"); return; }
+  insp.classList.add("open"); insp.setAttribute("aria-hidden","false");
+  el("iRef").textContent = (r.verse ? `${r.chapter}:${r.verse}` : `${r.chapter} tit.`) + "  ·  " + r.type;
+
+  const wk=new Set(r.witnesses.map(key)), mk=new Set(r.missing.map(key));
+  const silent=S.witnesses.filter(w=>!wk.has(w.key)&&!mk.has(w.key));
+  const F=(label,html)=> html ? `<div class="ifield"><h4>${label}</h4><div class="val">${html}</div></div>` : "";
+
+  el("iBody").innerHTML =
+    F("Lemma in text", r.inText?tex(r.inText):"") +
+    F("Anchor", r.anchor?tex(r.anchor):"") +
+    F("Reading", r.reading?tex(r.reading):"") +
+    F("Note", r.note?`<span style="font-style:italic">${esc(r.note)}</span>`:"") +
+    (r.annotations.length?F("Annotations",r.annotations.map(a=>tex(a)).join("<br>")):"") +
+    (r.citations.length?`<div class="ifield"><h4>Citations</h4><ul>${r.citations.map(c=>`<li>${esc(c)}</li>`).join("")}</ul></div>`:"") +
+    (r.versions.length?F("Versions",esc(r.versions.join(", "))):"") +
+    // (r.flags.length?`<div class="ifield"><h4>Checks</h4><ul>${r.flags.map(f=>`<li style="color:var(--alarm)">${esc(CHECK_LABEL[f]||f)}</li>`).join("")}</ul></div>`:"") +
+    `<div class="ifield"><h4>Witness states — ${S.witnesses.length} sigla in the corpus</h4>
+      <div class="statecols">
+        <div class="statecol a"><h5>Attests ${r.witnesses.length}</h5><div>${r.witnesses.map(w=>tex(w)).join(" ")||"—"}</div></div>
+        <div class="statecol l"><h5>Lacuna ${r.missing.length}</h5><div>${r.missing.map(w=>tex(w)).join(" ")||"—"}</div></div>
+        <div class="statecol s"><h5>Silent ${silent.length}</h5><div>${silent.map(w=>tex(w.raw)).join(" ")||"—"}</div></div>
+      </div>
+    </div>` +
+    `<div class="ifield"><h4>Source record</h4><pre>${esc(JSON.stringify(r.raw,null,2))}</pre></div>`;
+}
+
+function drawAll(){ drawTypeChips(); drawLensBar(); drawMap(); drawList(); drawWitnessList(); drawChecks(); }
+
+/* ══════════════════════════════════════════════════════════
+   7. Loading
+   ══════════════════════════════════════════════════════════ */
+function showLoader(msg, err){
+  el("shell").hidden=true;
+  el("loader").innerHTML=`
+    <div class="drop" id="drop">
+      <h2>Point me at an apparatus file</h2>
+      <p>${msg}</p>
+      <p>The file is the JSON your parser emits: an array of blocks with
+         <code>chapter</code>, <code>verse</code> and an <code>apparatus</code> list.</p>
+      <div class="row">
+        <button class="btn" id="pick">Choose a .json file</button>
+        <span style="color:var(--ink-3);font-size:12.5px">or drop it anywhere on this page</span>
+      </div>
+      ${err?`<div class="err">${esc(err)}</div>`:""}
+      <div class="hint">
+        Browsers refuse to <span class="mono">fetch</span> local files over <span class="mono">file://</span>.
+        To have it load by itself, serve the folder — <code>python3 -m http.server</code> — and open
+        <span class="mono">http://localhost:8000/apparatus-viewer.html</span>.
+        It reads <span class="mono">apparatus.json</span> from the same folder by default, or
+        <span class="mono">?src=path/to/file.json</span>.
+      </div>
+    </div>`;
+  el("pick").onclick=()=>el("file").click();
+}
+
+function load(data, label){
+  try{ ingest(data); }
+  catch(e){ showLoader("That file did not parse as an apparatus.", e.message); return; }
+  S.source=label;
+  el("srcLabel").textContent = `${label} · ${S.recs.length} readings`;
+  el("loader").innerHTML=""; el("shell").hidden=false;
+  drawFigures(); drawIndex(); drawAll();
+  applyHash();
+}
+
+async function boot(){
+  const params=new URLSearchParams(location.search);
+  const src=params.get("src")||"apparatus.json";
+  if(location.protocol==="file:"){
+    showLoader("Open the JSON your pipeline produced and it will render here.");
+    return;
+  }
+  try{
+    const res=await fetch(src,{cache:"no-store"});
+    if(!res.ok) throw new Error(res.status+" "+res.statusText);
+    load(await res.json(), src);
+  }catch(e){
+    showLoader(`Could not read <span class="mono">${esc(src)}</span> automatically.`, String(e.message||e));
+  }
+}
+
+el("file").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const fr=new FileReader();
+  fr.onload=()=>{ try{ load(JSON.parse(fr.result), f.name); } catch(err){ showLoader("That file is not valid JSON.", err.message); } };
+  fr.readAsText(f);
+});
+["dragenter","dragover"].forEach(ev=>document.addEventListener(ev,e=>{
+  e.preventDefault(); const d=el("drop"); if(d)d.classList.add("hot");
+}));
+["dragleave","drop"].forEach(ev=>document.addEventListener(ev,e=>{
+  if(ev==="dragleave"&&e.relatedTarget) return;
+  const d=el("drop"); if(d)d.classList.remove("hot");
+}));
+document.addEventListener("drop",e=>{
+  e.preventDefault();
+  const f=e.dataTransfer.files[0]; if(!f) return;
+  const fr=new FileReader();
+  fr.onload=()=>{ try{ load(JSON.parse(fr.result), f.name); } catch(err){ showLoader("That file is not valid JSON.", err.message); } };
+  fr.readAsText(f);
+});
+
+/* ══════════════════════════════════════════════════════════
+   8. Events
+   ══════════════════════════════════════════════════════════ */
+function setLens(k){
+  S.lens = k ? S.witnesses.find(w=>w.key===k) || null : null;
+  if(!S.lens) S.lensState=null;
+  drawAll();
+}
+function applyHash(){
+  const h=decodeURIComponent(location.hash.slice(1));
+  if(!h) return;
+  const node=document.getElementById("v-"+h);
+  if(node) node.scrollIntoView({block:"start",behavior:"smooth"});
+}
+
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-goto],[data-wit],[data-type],[data-check],[data-check-any],[data-rec],[data-scope],[data-lens],[data-lensstate],[data-reset]");
+  if(!t) return;
+  if(t.dataset.goto!==undefined){
+    const n=document.getElementById("v-"+t.dataset.goto);
+    if(n) n.scrollIntoView({block:"start",behavior:"smooth"});
+    else { S.q=""; el("q").value=""; S.typeFilter.clear(); S.checkFilter=null; drawAll();
+           setTimeout(()=>{const m=document.getElementById("v-"+t.dataset.goto); if(m)m.scrollIntoView({block:"start"});},0); }
+    history.replaceState(null,"","#"+encodeURIComponent(t.dataset.goto));
+  }
+  else if(t.dataset.wit!==undefined){ setLens(S.lens&&S.lens.key===t.dataset.wit?null:t.dataset.wit); }
+  else if(t.dataset.type!==undefined){
+    const v=t.dataset.type; S.typeFilter.has(v)?S.typeFilter.delete(v):S.typeFilter.add(v); drawAll();
+  }
+  else if(t.dataset.checkAny!==undefined){ S.checkFilter = S.checkFilter==="__any"?null:"__any"; drawAll(); }
+  else if(t.dataset.check!==undefined){ S.checkFilter = S.checkFilter===t.dataset.check?null:t.dataset.check; drawAll(); }
+  else if(t.dataset.scope!==undefined){ S.lensScope=t.dataset.scope; drawAll(); }
+  else if(t.dataset.lens!==undefined){ setLens(null); }
+  else if(t.dataset.lensstate!==undefined){ S.lensState=t.dataset.lensstate||null; drawAll(); }
+  else if(t.dataset.reset!==undefined){ S.typeFilter.clear(); S.checkFilter=null; S.q=""; el("q").value=""; setLens(null); }
+  else if(t.dataset.rec!==undefined){ S.selected=t.dataset.rec; drawList(); drawInspector(); }
+});
+el("q").addEventListener("input",e=>{ S.q=e.target.value; drawList(); });
+el("wfind").addEventListener("input",drawWitnessList);
+el("btnMap").addEventListener("click",()=>{ S.mapOn=!S.mapOn; el("btnMap").setAttribute("aria-pressed",S.mapOn); drawMap(); });
+el("btnOpen").addEventListener("click",()=>el("file").click());
+el("iClose").addEventListener("click",()=>{ S.selected=null; drawInspector(); drawList(); });
+el("iCopy").addEventListener("click",()=>{
+  const r=S.recs.find(x=>x.id===S.selected); if(!r) return;
+  navigator.clipboard.writeText(JSON.stringify(r.raw,null,2));
+  el("iCopy").textContent="Copied"; setTimeout(()=>el("iCopy").textContent="Copy JSON",1200);
+});
+el("btnTheme").addEventListener("click",()=>{
+  const cur=document.documentElement.getAttribute("data-theme");
+  const next = cur==="dark" ? "light" : cur==="light" ? "dark"
+    : (matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark");
+  document.documentElement.setAttribute("data-theme",next);
+});
+el("btnExport").addEventListener("click",()=>{
+  const keep=new Set(filtered().map(r=>r.id));
+  const out=S.verses.map(v=>{
+    const app=v.recs.filter(r=>keep.has(r.id)).map(r=>r.raw);
+    return app.length?{chapter:v.chapter,verse:v.verse,apparatus:app}:null;
+  }).filter(Boolean);
+  const blob=new Blob([JSON.stringify(out,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download="apparatus-view.json"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="/"&&document.activeElement!==el("q")){ e.preventDefault(); el("q").focus(); el("q").select(); }
+  else if(e.key==="Escape"){
+    if(S.selected){ S.selected=null; drawInspector(); drawList(); }
+    else if(el("q").value){ el("q").value=""; S.q=""; drawList(); }
+  }
+});
+window.addEventListener("hashchange",applyHash);
+
+const measure=()=>document.documentElement.style.setProperty("--topbar",
+  document.querySelector(".topbar").offsetHeight+"px");
+addEventListener("resize",measure); measure();
+
+boot();
+</script>
+</body>
+</html>

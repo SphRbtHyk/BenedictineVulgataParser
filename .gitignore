@@ -1,0 +1,4 @@
+.DS_store
+venv
+vulgata_scan_work
+*.pyc

@@ -1,5 +1,9 @@
 # vulgata-scan — parsing the critical apparatus of the Benedictine Vulgate 📜✨
 
+<p align="center">
+  <img src="public/logo.jpg" alt="Parser logo" width="240">
+</p>
+
 `vulgata-scan` is the reference implementation of the paper *From Printed
 Critical Apparatus to Structured Data: A Case Study on the Benedictine
 Vulgate*: it turns **scanned pages of the critical apparatus of the Vulgate
@@ -358,19 +362,3 @@ pytest                  # + offline pipeline integration on example/sample_genes
 (19 tests; the slow marker loads the CNN checkpoint and processes the real
 sample scans, ~1.5 min on an M-series laptop.)
 
-## Notes on this consolidation — deviations from the original layout 📝
-
-- The legacy repository keeps its own untouched copy of everything; this
-  package is the consolidated, installable artifact of the paper.
-- `pipeline/grammar/` in the legacy repo holds only docstring stubs; the
-  live grammar implementation it advertises is the (partly commented-out)
-  `parser/parse_apparatus.py`, whose live part is ported unchanged here to
-  `vulgata_scan/grammar/parser.py`.
-- The canonical test input is `example/sample_genesis.pdf` (a PDF, not a
-  `.py` file as the task list suggested).
-- The GLM-OCR SDK path of the original stage 1 (`pipeline_final_code/glm/`,
-  mlx-vlm-specific) is subsumed by the model-agnostic `vlm` module:
-  the same OpenAI-compatible wire protocol covers both the reference
-  Mistral backend and local servers such as mlx-vlm's. Any other provider
-  that speaks the OpenAI chat-completions protocol with image parts works
-  via the `local` backend by pointing `--endpoint` at it.

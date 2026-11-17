@@ -2,3 +2,6 @@
 venv
 vulgata_scan_work
 *.pyc
+.vscode
+*.egg-info
+test_outputs
